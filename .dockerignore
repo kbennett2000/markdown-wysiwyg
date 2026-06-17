@@ -8,6 +8,9 @@ Dockerfile
 docker-compose.yml
 .dockerignore
 design_handoff_markdown_editor
+docs
+scripts
+.github
 *.md
 !README.md
 .claude

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="76" viewBox="0 0 300 76" role="img" aria-label="Install on Linux">
+  <rect x="1" y="1" width="298" height="74" rx="14" fill="#ffffff" stroke="#e3e3dd" stroke-width="1.5"/>
+  <g transform="translate(26,20)">
+    <!-- penguin body -->
+    <path d="M15 1 C10.6 1 8.4 4.6 8.4 9.3 C8.4 13 7 14.8 5.6 17 C4.4 18.9 3.6 20.6 3.6 22.4 C3.6 25.6 7.8 27 12 27 L18 27 C22.2 27 26.4 25.6 26.4 22.4 C26.4 20.6 25.6 18.9 24.4 17 C23 14.8 21.6 13 21.6 9.3 C21.6 4.6 19.4 1 15 1 Z" fill="#1b1b18"/>
+    <!-- belly -->
+    <ellipse cx="15" cy="18.5" rx="5.4" ry="7.2" fill="#ffffff"/>
+    <!-- eyes -->
+    <circle cx="12.4" cy="8.2" r="2" fill="#ffffff"/>
+    <circle cx="17.6" cy="8.2" r="2" fill="#ffffff"/>
+    <circle cx="12.7" cy="8.5" r="0.95" fill="#1b1b18"/>
+    <circle cx="17.3" cy="8.5" r="0.95" fill="#1b1b18"/>
+    <!-- beak -->
+    <path d="M13.2 10.6 L16.8 10.6 L15 13 Z" fill="#3061e8"/>
+    <!-- feet -->
+    <ellipse cx="11" cy="27.4" rx="3" ry="1.7" fill="#3061e8"/>
+    <ellipse cx="19" cy="27.4" rx="3" ry="1.7" fill="#3061e8"/>
+  </g>
+  <text x="76" y="33" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1b1b18">Linux</text>
+  <text x="76" y="53" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="12.5" fill="#76766c">Step-by-step install &#8594;</text>
+</svg>

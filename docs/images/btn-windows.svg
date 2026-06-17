@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="76" viewBox="0 0 300 76" role="img" aria-label="Install on Windows">
+  <rect x="1" y="1" width="298" height="74" rx="14" fill="#ffffff" stroke="#e3e3dd" stroke-width="1.5"/>
+  <g transform="translate(24,23)" fill="#3061e8">
+    <rect x="0" y="0" width="13" height="13" rx="1.5"/>
+    <rect x="16" y="0" width="13" height="13" rx="1.5"/>
+    <rect x="0" y="16" width="13" height="13" rx="1.5"/>
+    <rect x="16" y="16" width="13" height="13" rx="1.5"/>
+  </g>
+  <text x="76" y="33" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1b1b18">Windows</text>
+  <text x="76" y="53" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#76766c">Step-by-step install &#8594;</text>
+</svg>
