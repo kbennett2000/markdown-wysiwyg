@@ -24,6 +24,33 @@ export function buildStandaloneHtml(md: string, title: string, forPrint = false)
   )
 }
 
+/**
+ * Share `content` as a file via the native OS share sheet (Web Share API) — on a
+ * phone this includes "Save to Drive", Files, email, etc., mirroring how the
+ * soap-journal-mobile app reaches Drive. Falls back to a plain download where Web
+ * Share with files isn't available (desktop, or insecure contexts like a plain-HTTP
+ * LAN address — Web Share requires HTTPS or localhost).
+ */
+export async function shareFile(
+  filename: string,
+  mime: string,
+  content: string
+): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  try {
+    const file = new File([content], filename, { type: mime })
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename })
+      return 'shared'
+    }
+  } catch (e) {
+    // The user dismissing the share sheet throws AbortError — not an error to us.
+    if (e instanceof DOMException && e.name === 'AbortError') return 'cancelled'
+    // Anything else: fall through to a download.
+  }
+  download(filename, mime, content)
+  return 'downloaded'
+}
+
 /** Trigger a browser download of `content` as `filename`. */
 export function download(filename: string, mime: string, content: string): void {
   const blob = new Blob([content], { type: mime })

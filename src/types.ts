@@ -21,15 +21,3 @@ export interface ToastState {
   msg: string
   err: boolean
 }
-
-import type { DriveFile } from './lib/drive'
-export type ModalState =
-  | { kind: 'driveSetup'; value: string }
-  | { kind: 'driveOpen'; loading: boolean; files: DriveFile[] }
-
-export interface DriveState {
-  clientId: string | null
-  token: string | null
-  email: string | null
-  fileId: string | null
-}

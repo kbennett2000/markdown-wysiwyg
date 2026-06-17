@@ -45,10 +45,12 @@ just click a button, the same way you would anywhere else.
   tables, to‑do lists — all from a friendly toolbar.
 - 🔄 **Peek "under the hood" anytime.** Flip to a side‑by‑side view to see the plain
   Markdown your writing becomes. (Curious, not required!)
-- 💾 **Save it your way.** Download as Markdown, a web page (HTML), or a PDF.
+- 💾 **Save it your way.** Download as Markdown, a web page (HTML), or a PDF — or use
+  **Share…** to send it straight to your phone's share sheet (including *Save to
+  Drive*).
 - 🌗 **Light or dark.** Whichever is kinder to your eyes.
-- 🔒 **Private and offline.** After the first setup it needs no internet, and your
-  words stay on your own computer.
+- 🔒 **Private and offline.** It needs no internet at all, and your words never leave
+  your own computer.
 
 ## Try it in about a minute
 
@@ -109,22 +111,18 @@ docker compose up --build      # serves on http://localhost:8080
 docker run --rm -e APP_PORT=9000 -p 9000:9000 ghcr.io/kbennett2000/markdown-wysiwyg:latest
 ```
 
-**Optional Google Drive.** Drive is off until configured. Provide a Google OAuth
-Client ID at **runtime** and the same image enables it — no rebuild, and the in‑app
-"paste a Client ID" prompt is skipped:
+**Saving to Google Drive (and anywhere).** There's no Google account or API to set
+up. **Share…** uses the browser's [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)
+to open your device's native share sheet — on a phone that includes *Save to Drive*,
+Files, email, and so on. Where Web Share isn't available it falls back to a normal
+download. (Web Share needs a secure context, so on a plain‑HTTP LAN address like
+`http://192.168.1.62:8080` it just downloads; serve over HTTPS or open via
+`localhost` to get the share sheet.) To **open** a Drive file, use **Open file…** and
+pick it from your Drive‑synced folder.
 
-```bash
-docker run --rm -e GDRIVE_CLIENT_ID=xxxx.apps.googleusercontent.com \
-  -p 8080:8080 ghcr.io/kbennett2000/markdown-wysiwyg:latest
-```
-
-Full walkthrough (Cloud project, consent screen, authorized origins): **[docs/google-drive.md](docs/google-drive.md)**.
-A from‑source build can also bake one in via the `VITE_GDRIVE_CLIENT_ID` build arg.
-
-**Offline by design.** Everything (the editor libraries and the IBM Plex fonts) is
-bundled at build time — no CDN, no Google Fonts. The only feature that ever touches
-the network is the optional Google Drive integration, which is lazy‑loaded only when
-you click a Drive action. Verify with `docker run --network none …`.
+**Fully offline.** Everything (the editor libraries and the IBM Plex fonts) is bundled
+at build time — no CDN, no Google Fonts, and **no feature that touches the network**.
+Verify with `docker run --network none …`.
 
 The README banner and screenshots are generated locally with Playwright:
 

@@ -67,16 +67,18 @@ Click **File** in the top‑left to open the menu:
 ![The File menu open](images/file-menu.png)
 
 - **New document** — start fresh.
-- **Open file…** — open a Markdown or HTML file from your computer.
+- **Open file…** — open a Markdown or HTML file from your computer. (This is also how
+  you open something from **Google Drive** — just pick it from your Drive folder.)
+- **Share…** — send your writing to your device's share sheet: on a phone that
+  includes **Save to Drive**, email, messaging, and more. On a desktop (or over a
+  plain `http://…` address) it simply downloads the file instead.
 - **Download Markdown** — save your writing as a `.md` text file.
 - **Download HTML** — save it as a web page.
 - **Export PDF** — save a tidy PDF (great for printing or emailing).
 
 Your writing lives in your browser while you work, and it only leaves your computer
-when *you* choose to download it. Nothing is uploaded anywhere.
-
-> The **Google Drive** options are optional extras. You can ignore them completely —
-> everything above works without an internet connection.
+when *you* choose to share or download it. Nothing is ever uploaded automatically —
+there's no account to sign into and no internet required.
 
 ---
 

@@ -1,23 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Mode, Theme, Fmt, DialogState, ToastState, ModalState, DriveState } from './types'
+import type { Mode, Theme, Fmt, DialogState, ToastState } from './types'
 import { SAMPLE, DEFAULT_TABLE } from './sample'
 import { makeTurndown, mdToHtml, htmlToMd } from './lib/convert'
-import { buildStandaloneHtml, download, exportPdf } from './lib/exporters'
-import {
-  envClientId,
-  requestToken,
-  revokeToken,
-  fetchEmail,
-  saveToDrive,
-  listDrive,
-  openDriveFile,
-  type DriveFile,
-} from './lib/drive'
+import { buildStandaloneHtml, download, exportPdf, shareFile } from './lib/exporters'
 import TopBar from './components/TopBar'
 import Toolbar, { type ToolbarCmds } from './components/Toolbar'
 import FileMenu from './components/FileMenu'
 import LinkImageDialog from './components/LinkImageDialog'
-import DriveModals from './components/DriveModals'
 import StatusBar from './components/StatusBar'
 import Toast from './components/Toast'
 import LoadingOverlay from './components/LoadingOverlay'
@@ -111,8 +100,6 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
   const [fileName, setFileName] = useState('untitled.md')
   const [dirty, setDirty] = useState(false)
   const [toastState, setToastState] = useState<ToastState | null>(null)
-  const [modal, setModal] = useState<ModalState | null>(null)
-  const [drive, setDrive] = useState<DriveState>({ clientId: null, token: null, email: null, fileId: null })
 
   // markdown — single source of truth, kept OUTSIDE React state so typing never
   // triggers a re-render that would disturb the caret.
@@ -123,9 +110,6 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
   const savedRange = useRef<Range | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafRef = useRef<number | null>(null)
-  // mirror drive state into a ref so async handlers read current values
-  const driveRef = useRef(drive)
-  driveRef.current = drive
 
   const toast = useCallback((msg: string, err = false) => {
     setToastState({ msg, err })
@@ -209,15 +193,6 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
     updateCounts()
     setReady(true)
     setMode(startMode)
-
-    // restore a configured Drive client id (env build-time, else last-used)
-    let storedCid: string | null = null
-    try {
-      storedCid = envClientId() || localStorage.getItem('mdedit_gdrive_client')
-    } catch {
-      storedCid = envClientId()
-    }
-    if (storedCid) setDrive((d) => ({ ...d, clientId: storedCid }))
 
     const onSelChange = () => {
       if (document.activeElement !== editorRef.current) return
@@ -464,7 +439,6 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
     setMenuOpen(false)
     setFileName('untitled.md')
     setDirty(false)
-    setDrive((d) => ({ ...d, fileId: null }))
   }
   const doOpenLocal = () => {
     setMenuOpen(false)
@@ -482,7 +456,6 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
       const name = file.name.replace(/\.(html?|htm|txt)$/i, '.md')
       setFileName(name)
       setDirty(false)
-      setDrive((d) => ({ ...d, fileId: null }))
       toast('Opened ' + file.name)
     }
     reader.readAsText(file)
@@ -503,114 +476,17 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
     exportPdf(mdRef.current || '', baseName())
     toast('Opening print dialog… choose “Save as PDF”')
   }
-
-  // ---- google drive (online-only) ----
-  const driveErr = (e: unknown) => (e instanceof Error ? e.message : 'Google Drive error')
-  const getToken = async (cid: string): Promise<string | null> => {
-    if (driveRef.current.token) return driveRef.current.token
-    try {
-      const t = await requestToken(cid)
-      setDrive((d) => ({ ...d, token: t }))
-      fetchEmail(t).then((email) => {
-        if (email) setDrive((d) => ({ ...d, email }))
-      })
-      return t
-    } catch (e) {
-      toast(driveErr(e), true)
-      return null
-    }
-  }
-  const ensureToken = async (): Promise<string | null> => {
-    const cid = driveRef.current.clientId || envClientId()
-    if (!cid) {
-      setMenuOpen(false)
-      setModal({ kind: 'driveSetup', value: '' })
-      return null
-    }
-    return getToken(cid)
-  }
-  const doSaveDrive = async () => {
+  // Share via the OS share sheet (incl. "Save to Drive") where supported, else download.
+  const doShare = async () => {
     setMenuOpen(false)
-    const tok = await ensureToken()
-    if (!tok) return
-    try {
-      const res = await saveToDrive(tok, withExt('md'), mdRef.current || '', driveRef.current.fileId)
-      setDrive((d) => ({ ...d, fileId: res.id }))
-      setFileName(res.name)
-      setDirty(false)
-      toast('Saved to Google Drive')
-    } catch {
-      toast('Drive save failed', true)
-    }
-  }
-  const doOpenDrive = async () => {
-    setMenuOpen(false)
-    const tok = await ensureToken()
-    if (!tok) return
-    setModal({ kind: 'driveOpen', loading: true, files: [] })
-    try {
-      const files = await listDrive(tok)
-      setModal({ kind: 'driveOpen', loading: false, files })
-    } catch {
-      setModal(null)
-      toast('Could not list Drive files', true)
-    }
-  }
-  const onOpenDriveFile = async (f: DriveFile) => {
-    const tok = driveRef.current.token
-    if (!tok) return
-    try {
-      const txt = await openDriveFile(tok, f.id)
-      loadMd(txt)
-      setFileName(f.name)
-      setDrive((d) => ({ ...d, fileId: f.id }))
-      setDirty(false)
-      setModal(null)
-      toast('Opened ' + f.name)
-    } catch {
-      toast('Could not open file', true)
-    }
-  }
-  const doDriveToggle = async () => {
-    setMenuOpen(false)
-    if (driveRef.current.token) {
-      revokeToken(driveRef.current.token)
-      setDrive((d) => ({ ...d, token: null, email: null, fileId: null }))
-      toast('Disconnected from Drive')
-    } else {
-      const tok = await ensureToken()
-      if (tok) toast('Google Drive connected')
-    }
-  }
-  const saveClientId = async () => {
-    const v = (modal && modal.kind === 'driveSetup' ? modal.value : '').trim()
-    if (!v) return
-    try {
-      localStorage.setItem('mdedit_gdrive_client', v)
-    } catch {
-      /* ignore */
-    }
-    setDrive((d) => ({ ...d, clientId: v }))
-    setModal(null)
-    const tok = await getToken(v)
-    if (tok) toast('Google Drive connected')
-  }
-  const fmtWhen = (iso?: string) => {
-    if (!iso) return ''
-    try {
-      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    } catch {
-      return ''
-    }
+    const name = withExt('md')
+    const res = await shareFile(name, 'text/markdown;charset=utf-8', mdRef.current || '')
+    if (res === 'shared') toast('Shared ' + name)
+    else if (res === 'downloaded') toast('Downloaded ' + name)
   }
 
   // ---- derived view values ----
   const blockLabel = BLOCK_LABELS[fmt.block || ''] || 'Paragraph'
-  const driveLabel = drive.email
-    ? drive.email + ' · Disconnect'
-    : drive.token
-      ? 'Disconnect Drive'
-      : 'Connect Google Drive'
   const shellStyle = {
     ['--accent' as string]: accentColor,
     ['--accent-soft' as string]: accentColor + '20',
@@ -684,27 +560,13 @@ export default function App({ accentColor = '#3061e8', startMode = 'editor', ser
 
       {menuOpen && (
         <FileMenu
-          driveLabel={driveLabel}
           onClose={() => setMenuOpen(false)}
           onNew={doNew}
           onOpenLocal={doOpenLocal}
-          onOpenDrive={doOpenDrive}
+          onShare={doShare}
           onExportMd={doExportMd}
           onExportHtml={doExportHtml}
           onExportPdf={doExportPdf}
-          onSaveDrive={doSaveDrive}
-          onDriveToggle={doDriveToggle}
-        />
-      )}
-
-      {modal && (
-        <DriveModals
-          modal={modal}
-          onClose={() => setModal(null)}
-          onSetupChange={(value) => setModal((m) => (m && m.kind === 'driveSetup' ? { ...m, value } : m))}
-          onSetupConfirm={saveClientId}
-          onOpenFile={onOpenDriveFile}
-          fmtWhen={fmtWhen}
         />
       )}
 

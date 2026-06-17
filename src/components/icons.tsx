@@ -168,6 +168,16 @@ export const SaveIcon = (p: P) => (
   </svg>
 )
 
+export const ShareIcon = (p: P) => (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" {...p}>
+    <circle cx="12" cy="3.5" r="1.9" />
+    <circle cx="4" cy="8" r="1.9" />
+    <circle cx="12" cy="12.5" r="1.9" />
+    <line x1="5.7" y1="7.1" x2="10.3" y2="4.4" />
+    <line x1="5.7" y1="8.9" x2="10.3" y2="11.6" />
+  </svg>
+)
+
 export const FileSmall = (p: P) => (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" {...p}>
     <rect x="2.5" y="1.5" width="9" height="13" rx="1.4" />

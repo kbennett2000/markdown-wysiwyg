@@ -1,29 +1,23 @@
-import { NewDoc, OpenFolder, DriveIcon, DownloadIcon, CodeChevrons, PdfIcon, SaveIcon } from './icons'
+import { NewDoc, OpenFolder, ShareIcon, DownloadIcon, CodeChevrons, PdfIcon } from './icons'
 
 interface Props {
-  driveLabel: string
   onClose: () => void
   onNew: () => void
   onOpenLocal: () => void
-  onOpenDrive: () => void
+  onShare: () => void
   onExportMd: () => void
   onExportHtml: () => void
   onExportPdf: () => void
-  onSaveDrive: () => void
-  onDriveToggle: () => void
 }
 
 export default function FileMenu({
-  driveLabel,
   onClose,
   onNew,
   onOpenLocal,
-  onOpenDrive,
+  onShare,
   onExportMd,
   onExportHtml,
   onExportPdf,
-  onSaveDrive,
-  onDriveToggle,
 }: Props) {
   return (
     <>
@@ -39,12 +33,13 @@ export default function FileMenu({
           Open file…
           <span className="k">.md .html</span>
         </button>
-        <button className="mi" onClick={onOpenDrive}>
-          <DriveIcon />
-          Open from Drive…
-        </button>
         <div className="mdiv" />
         <div className="grp">Export</div>
+        <button className="mi" onClick={onShare}>
+          <ShareIcon />
+          Share…
+          <span className="k">save anywhere</span>
+        </button>
         <button className="mi" onClick={onExportMd}>
           <DownloadIcon />
           Download Markdown
@@ -59,15 +54,6 @@ export default function FileMenu({
           <PdfIcon />
           Export PDF
           <span className="k">print</span>
-        </button>
-        <button className="mi" onClick={onSaveDrive}>
-          <SaveIcon />
-          Save to Drive
-        </button>
-        <div className="mdiv" />
-        <button className="mi" onClick={onDriveToggle}>
-          <DriveIcon />
-          {driveLabel}
         </button>
       </div>
     </>
