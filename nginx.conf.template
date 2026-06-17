@@ -1,0 +1,32 @@
+# Rendered at container start: ${APP_PORT} is substituted from the environment
+# (default 8080). nginx variables like $uri are left untouched because they are
+# not defined as environment variables.
+server {
+    listen       ${APP_PORT};
+    listen       [::]:${APP_PORT};
+    server_name  _;
+
+    root   /usr/share/nginx/html;
+    index  index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml font/woff2;
+    gzip_min_length 1024;
+
+    # SPA fallback — serve index.html for any unknown route.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Long-cache hashed build assets (filenames change on every build).
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Never cache the HTML entrypoint, so new builds are picked up immediately.
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+}

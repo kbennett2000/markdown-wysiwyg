@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+Dockerfile
+docker-compose.yml
+.dockerignore
+design_handoff_markdown_editor
+*.md
+!README.md
+.claude

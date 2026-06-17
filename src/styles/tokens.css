@@ -1,0 +1,53 @@
+:root {
+  --bg: #f6f6f3;
+  --shell: #ffffff;
+  --bar: #fbfbf9;
+  --toolbar: #f2f2ee;
+  --border: #e7e7e1;
+  --border-strong: #d6d6cd;
+  --text: #1b1b18;
+  --dim: #76766c;
+  --faint: #a6a69c;
+  --accent: #3061e8;
+  --accent-soft: rgba(48, 97, 232, 0.11);
+  --on-accent: #ffffff;
+  --code-bg: #edede8;
+  --sel: rgba(48, 97, 232, 0.16);
+}
+
+[data-theme='dark'] {
+  --bg: #15161a;
+  --shell: #1c1e24;
+  --bar: #1e2026;
+  --toolbar: #23252c;
+  --border: #2c2f37;
+  --border-strong: #3b3f49;
+  --text: #e8e9ec;
+  --dim: #9aa0ab;
+  --faint: #686d77;
+  --accent: #7aa2ff;
+  --accent-soft: rgba(122, 162, 255, 0.15);
+  --on-accent: #12141a;
+  --code-bg: #23252c;
+  --sel: rgba(122, 162, 255, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+#root {
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+::selection {
+  background: var(--sel);
+}

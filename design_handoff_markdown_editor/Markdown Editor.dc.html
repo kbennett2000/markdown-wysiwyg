@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown@7/dist/turndown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js"></script>
+<style>
+:root{
+  --bg:#f6f6f3;--shell:#ffffff;--bar:#fbfbf9;--toolbar:#f2f2ee;
+  --border:#e7e7e1;--border-strong:#d6d6cd;--text:#1b1b18;--dim:#76766c;--faint:#a6a69c;
+  --accent:#3061e8;--accent-soft:rgba(48,97,232,.11);--on-accent:#ffffff;--code-bg:#edede8;--sel:rgba(48,97,232,.16);
+}
+[data-theme="dark"]{
+  --bg:#15161a;--shell:#1c1e24;--bar:#1e2026;--toolbar:#23252c;
+  --border:#2c2f37;--border-strong:#3b3f49;--text:#e8e9ec;--dim:#9aa0ab;--faint:#686d77;
+  --accent:#7aa2ff;--accent-soft:rgba(122,162,255,.15);--on-accent:#12141a;--code-bg:#23252c;--sel:rgba(122,162,255,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:var(--bg);font-family:'IBM Plex Sans',system-ui,sans-serif}
+::selection{background:var(--sel)}
+
+.shell{position:relative;height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);overflow:hidden}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:48px;padding:0 16px;background:var(--bar);border-bottom:1px solid var(--border);flex:none}
+.brand{display:flex;align-items:center;gap:9px;font:500 13px/1 'IBM Plex Mono',monospace;color:var(--dim)}
+.brand svg{color:var(--faint)}
+.brand .fname{color:var(--text)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.75}
+.bar-right{display:flex;align-items:center;gap:10px}
+.segwrap{display:flex;gap:2px;padding:3px;background:var(--toolbar);border:1px solid var(--border);border-radius:9px}
+.seg{appearance:none;border:none;background:transparent;color:var(--dim);font:600 10.5px/1 'IBM Plex Mono',monospace;letter-spacing:.05em;text-transform:uppercase;padding:6px 11px;border-radius:6px;cursor:pointer;transition:color .12s,background .12s}
+.seg:hover{color:var(--text)}
+.seg.on{background:var(--shell);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.iconbtn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid var(--border);background:var(--toolbar);color:var(--dim);border-radius:8px;cursor:pointer;transition:color .12s,border-color .12s}
+.iconbtn:hover{color:var(--text);border-color:var(--border-strong)}
+.i-sun{display:none}
+[data-theme="dark"] .i-sun{display:block}
+[data-theme="dark"] .i-moon{display:none}
+
+.toolbar{display:flex;align-items:center;gap:3px;flex-wrap:wrap;padding:7px 13px;background:var(--toolbar);border-bottom:1px solid var(--border);flex:none}
+[data-mode="source"] .toolbar{opacity:.38;pointer-events:none}
+.tb{display:flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 8px;border:none;background:transparent;color:var(--dim);font:600 12.5px/1 'IBM Plex Mono',monospace;letter-spacing:.02em;border-radius:7px;cursor:pointer;transition:color .1s,background .1s}
+.tb:hover{background:var(--accent-soft);color:var(--text)}
+.tb.on{background:var(--accent-soft);color:var(--accent)}
+.tb svg{display:block}
+.tb.b{font-weight:700}.tb.i{font-style:italic}.tb.s{text-decoration:line-through}
+.sep{width:1px;height:18px;background:var(--border);margin:0 5px;flex:none}
+.blockwrap{position:relative;display:flex;margin-right:2px}
+.blockbtn{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--border);background:var(--shell);color:var(--text);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.01em;border-radius:7px;cursor:pointer;min-width:116px;justify-content:space-between;transition:border-color .12s}
+.blockbtn:hover{border-color:var(--border-strong)}
+.blockbtn svg{color:var(--dim);flex:none}
+.blockmenu{position:absolute;top:37px;left:0;z-index:45;width:178px;background:var(--shell);border:1px solid var(--border-strong);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.26);padding:5px;animation:pop .12s ease-out}
+.bmi{display:block;width:100%;text-align:left;padding:7px 11px;border:none;background:transparent;color:var(--text);font-family:'IBM Plex Sans',sans-serif;border-radius:7px;cursor:pointer;line-height:1.25}
+.bmi:hover{background:var(--accent-soft)}
+.bmi.on{background:var(--accent-soft);color:var(--accent)}
+.spacer{flex:1}
+
+.panes{flex:1;display:flex;min-height:0}
+.pane{flex:1;min-width:0;overflow:auto;background:var(--bg)}
+.pane::-webkit-scrollbar{width:11px;height:11px}
+.pane::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:7px;border:3px solid var(--bg)}
+.pane::-webkit-scrollbar-track{background:transparent}
+[data-mode="editor"] .pane-source{display:none}
+[data-mode="source"] .pane-editor{display:none}
+[data-mode="split"] .pane-source{border-left:1px solid var(--border)}
+.page{max-width:760px;margin:0 auto;padding:54px 30px 160px}
+
+.doc{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.72;color:var(--text);outline:none;min-height:60vh}
+.doc.serif{font-family:'IBM Plex Serif',Georgia,serif}
+.doc>*:first-child{margin-top:0}
+.doc h1{font-size:1.95em;font-weight:600;line-height:1.2;letter-spacing:-.022em;margin:1.5em 0 .5em}
+.doc h2{font-size:1.5em;font-weight:600;line-height:1.25;letter-spacing:-.015em;margin:1.4em 0 .45em}
+.doc h3{font-size:1.2em;font-weight:600;line-height:1.3;margin:1.3em 0 .4em}
+.doc h4{font-size:1.05em;font-weight:650;line-height:1.35;margin:1.25em 0 .35em}
+.doc h5{font-size:.95em;font-weight:650;line-height:1.35;margin:1.15em 0 .3em}
+.doc h6{font-size:.86em;font-weight:650;line-height:1.35;margin:1.15em 0 .3em;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.doc p{margin:0 0 1.05em}
+.doc ul,.doc ol{margin:0 0 1.05em;padding-left:1.5em}
+.doc li{margin:.3em 0}
+.doc li::marker{color:var(--faint)}
+.doc li:has(>input[type=checkbox]){list-style:none;margin-left:-1.35em}
+.doc input[type=checkbox]{width:15px;height:15px;margin:0 .55em 0 0;vertical-align:-2px;accent-color:var(--accent);cursor:pointer}
+.doc a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+.doc strong,.doc b{font-weight:650}
+.doc em,.doc i{font-style:italic}
+.doc del,.doc s{color:var(--dim)}
+.doc code{font-family:'IBM Plex Mono',monospace;font-size:.86em;background:var(--code-bg);border:1px solid var(--border);padding:.1em .36em;border-radius:5px}
+.doc pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:15px 18px;overflow:auto;margin:0 0 1.05em}
+.doc pre code{background:none;border:none;padding:0;font-size:.85em;line-height:1.65;display:block;white-space:pre}
+.doc blockquote{margin:0 0 1.05em;padding:.15em 0 .15em 1.1em;border-left:3px solid var(--accent);color:var(--dim)}
+.doc blockquote p{margin:.25em 0}
+.doc table{border-collapse:collapse;width:100%;margin:0 0 1.05em;font-size:.93em}
+.doc th,.doc td{border:1px solid var(--border-strong);padding:8px 13px;text-align:left}
+.doc th{background:var(--toolbar);font-weight:600}
+.doc img{max-width:100%;border-radius:10px;border:1px solid var(--border);margin:.2em 0}
+.doc hr{border:none;border-top:1px solid var(--border-strong);margin:1.8em 0}
+
+.src{display:block;width:100%;max-width:840px;margin:0 auto;min-height:calc(100vh - 200px);border:none;outline:none;resize:none;background:transparent;color:var(--text);font:400 13.5px/1.8 'IBM Plex Mono',monospace;tab-size:2;padding:48px 30px 160px;white-space:pre-wrap;word-break:break-word;caret-color:var(--accent)}
+
+.status{display:flex;align-items:center;gap:18px;height:30px;padding:0 16px;background:var(--bar);border-top:1px solid var(--border);font:500 11px/1 'IBM Plex Mono',monospace;color:var(--dim);letter-spacing:.02em;flex:none}
+.status b{color:var(--text);font-weight:600}
+.status .badge{margin-left:auto;color:var(--accent);border:1px solid var(--border);padding:3px 9px;border-radius:5px;letter-spacing:.05em}
+
+.overlay{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--dim);font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.06em;transition:opacity .35s}
+.shell.ready .overlay{opacity:0;pointer-events:none}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.dlg-back{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.2);display:flex;align-items:flex-start;justify-content:center;padding-top:96px}
+.dlg{background:var(--shell);border:1px solid var(--border-strong);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.3);width:390px;max-width:90%;padding:18px 18px 16px}
+.dlg h4{margin:0 0 15px;font:600 13px/1 'IBM Plex Mono',monospace;color:var(--text);letter-spacing:.01em}
+.dlg label{display:block;font:500 10px/1 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);margin:0 0 6px}
+.dlg input{width:100%;padding:9px 11px;margin-bottom:14px;background:var(--toolbar);border:1px solid var(--border);border-radius:8px;color:var(--text);font:400 13px/1.4 'IBM Plex Sans',sans-serif;outline:none}
+.dlg input:focus{border-color:var(--accent)}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.dlg-actions button{padding:8px 15px;border-radius:8px;font:600 12px/1 'IBM Plex Sans',sans-serif;cursor:pointer;border:1px solid transparent}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--dim)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-strong)}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{filter:brightness(1.07)}
+
+.bar-left{display:flex;align-items:center;gap:13px;min-width:0}
+.dot.saved{background:transparent;border:1.5px solid var(--border-strong)}
+.menubtn{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--toolbar);color:var(--dim);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;padding:7px 10px;border-radius:7px;cursor:pointer;transition:color .12s,border-color .12s}
+.menubtn:hover{color:var(--text);border-color:var(--border-strong)}
+.menubtn svg{transition:transform .15s}
+.menu-back{position:fixed;inset:0;z-index:44}
+.menu{position:absolute;top:46px;left:14px;z-index:45;width:252px;background:var(--shell);border:1px solid var(--border-strong);border-radius:12px;box-shadow:0 18px 46px rgba(0,0,0,.28);padding:6px;animation:pop .12s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.menu .grp{padding:7px 9px 4px;font:600 9.5px/1 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:none;background:transparent;color:var(--text);font:500 13px/1 'IBM Plex Sans',sans-serif;border-radius:8px;cursor:pointer;text-align:left}
+.mi:hover{background:var(--accent-soft)}
+.mi .k{margin-left:auto;font:500 10px/1 'IBM Plex Mono',monospace;color:var(--faint);letter-spacing:.03em}
+.mi svg{color:var(--dim);flex:none}
+.mdiv{height:1px;background:var(--border);margin:5px 4px}
+
+.toast{position:absolute;right:16px;bottom:42px;z-index:60;background:var(--text);color:var(--bg);font:500 12px/1.35 'IBM Plex Mono',monospace;padding:11px 15px;border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.32);max-width:320px;animation:pop .14s ease-out}
+.toast.err{background:#cc3b33;color:#fff}
+
+.dlg-wide{width:460px}
+.dnote{font:400 12.5px/1.6 'IBM Plex Sans',sans-serif;color:var(--dim);margin:0 0 16px}
+.dnote b{color:var(--text);font-weight:600}
+.dnote a{color:var(--accent);text-decoration:none}
+.dnote a:hover{text-decoration:underline}
+.dlist{max-height:320px;overflow:auto;margin:6px -6px 14px}
+.dfile{display:flex;align-items:center;gap:11px;width:100%;padding:10px;border:none;background:transparent;color:var(--text);font:500 13px/1 'IBM Plex Sans',sans-serif;border-radius:9px;cursor:pointer;text-align:left}
+.dfile:hover{background:var(--accent-soft)}
+.dfile svg{color:var(--accent);flex:none}
+.dfile .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dfile .meta{margin-left:auto;font:400 11px/1 'IBM Plex Mono',monospace;color:var(--faint);flex:none}
+.dempty{font:400 12.5px/1.5 'IBM Plex Sans',sans-serif;color:var(--faint);padding:14px 4px}
+</style>
+</helmet>
+
+<div class="shell {{ readyClass }}" data-mode="{{ mode }}" data-theme="{{ theme }}" style="{{ accentVars }}">
+
+  <div class="bar">
+    <div class="bar-left">
+      <div class="brand">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="1.5" width="9" height="13" rx="1.6"></rect><line x1="4.6" y1="5" x2="9.4" y2="5"></line><line x1="4.6" y1="8" x2="9.4" y2="8"></line><line x1="4.6" y1="11" x2="7.4" y2="11"></line></svg>
+        <span class="fname">{{ fileName }}</span>
+        <span class="dot {{ dirtyClass }}"></span>
+      </div>
+      <button class="menubtn" onClick="{{ toggleMenu }}">File <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5 L5 6.5 L8 3.5"></path></svg></button>
+    </div>
+    <div class="bar-right">
+      <div class="segwrap">
+        <button class="seg {{ on.mEditor }}" onClick="{{ setEditorMode }}">Editor</button>
+        <button class="seg {{ on.mSplit }}" onClick="{{ setSplitMode }}">Split</button>
+        <button class="seg {{ on.mSource }}" onClick="{{ setSourceMode }}">Source</button>
+      </div>
+      <button class="iconbtn" title="Toggle theme" onClick="{{ toggleTheme }}">
+        <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="M13.4 9.6A5.6 5.6 0 0 1 6.4 2.6 5.6 5.6 0 1 0 13.4 9.6Z"></path></svg>
+        <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"><circle cx="8" cy="8" r="3"></circle><line x1="8" y1="1" x2="8" y2="2.4"></line><line x1="8" y1="13.6" x2="8" y2="15"></line><line x1="1" y1="8" x2="2.4" y2="8"></line><line x1="13.6" y1="8" x2="15" y2="8"></line><line x1="3.05" y1="3.05" x2="4.05" y2="4.05"></line><line x1="11.95" y1="11.95" x2="12.95" y2="12.95"></line><line x1="3.05" y1="12.95" x2="4.05" y2="11.95"></line><line x1="11.95" y1="4.05" x2="12.95" y2="3.05"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="toolbar" onMouseDown="{{ keepFocus }}">
+    <div class="blockwrap">
+      <button class="blockbtn" title="Text style" onClick="{{ toggleBlockMenu }}">{{ blockLabel }} <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5 L5 6.5 L8 3.5"></path></svg></button>
+      <sc-if value="{{ blockMenuOpen }}" hint-placeholder-val="{{ false }}">
+        <div class="menu-back" onMouseDown="{{ closeBlockMenu }}"></div>
+        <div class="blockmenu">
+          <button class="bmi {{ on.bP }}" onClick="{{ blkP }}" style="font-size:14px">Paragraph</button>
+          <button class="bmi {{ on.bH1 }}" onClick="{{ blkH1 }}" style="font-size:20px;font-weight:600;letter-spacing:-.01em">Heading 1</button>
+          <button class="bmi {{ on.bH2 }}" onClick="{{ blkH2 }}" style="font-size:17px;font-weight:600">Heading 2</button>
+          <button class="bmi {{ on.bH3 }}" onClick="{{ blkH3 }}" style="font-size:15px;font-weight:600">Heading 3</button>
+          <button class="bmi {{ on.bH4 }}" onClick="{{ blkH4 }}" style="font-size:14px;font-weight:650">Heading 4</button>
+          <button class="bmi {{ on.bH5 }}" onClick="{{ blkH5 }}" style="font-size:13px;font-weight:650">Heading 5</button>
+          <button class="bmi {{ on.bH6 }}" onClick="{{ blkH6 }}" style="font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:.05em">Heading 6</button>
+        </div>
+      </sc-if>
+    </div>
+    <span class="sep"></span>
+    <button class="tb b {{ on.bold }}" title="Bold  (⌘B)" onClick="{{ bold }}">B</button>
+    <button class="tb i {{ on.italic }}" title="Italic  (⌘I)" onClick="{{ italic }}">I</button>
+    <button class="tb s {{ on.strike }}" title="Strikethrough" onClick="{{ strike }}">S</button>
+    <span class="sep"></span>
+    <button class="tb" title="Inline code" onClick="{{ inlineCode }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 4 L2 8 L5.6 12"></path><path d="M10.4 4 L14 8 L10.4 12"></path></svg></button>
+    <button class="tb" title="Code block" onClick="{{ codeBlock }}">{ }</button>
+    <span class="sep"></span>
+    <button class="tb {{ on.ul }}" title="Bullet list" onClick="{{ ul }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="2.5" cy="4" r="1" fill="currentColor" stroke="none"></circle><circle cx="2.5" cy="8" r="1" fill="currentColor" stroke="none"></circle><circle cx="2.5" cy="12" r="1" fill="currentColor" stroke="none"></circle><line x1="6" y1="4" x2="14" y2="4"></line><line x1="6" y1="8" x2="14" y2="8"></line><line x1="6" y1="12" x2="14" y2="12"></line></svg></button>
+    <button class="tb {{ on.ol }}" title="Numbered list" onClick="{{ ol }}">1.</button>
+    <button class="tb" title="Task list" onClick="{{ task }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.4" width="4.2" height="4.2" rx="1.1"></rect><path d="M2.4 4.5 L3.3 5.4 L4.9 3.5"></path><line x1="8.4" y1="4.5" x2="14" y2="4.5"></line><rect x="1.5" y="9.4" width="4.2" height="4.2" rx="1.1"></rect><line x1="8.4" y1="11.5" x2="14" y2="11.5"></line></svg></button>
+    <button class="tb" title="Outdent" onClick="{{ outdent }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="3.5" x2="14" y2="3.5"></line><line x1="7" y1="8" x2="14" y2="8"></line><line x1="7" y1="12.5" x2="14" y2="12.5"></line><path d="M4.5 6 L2 8 L4.5 10"></path></svg></button>
+    <button class="tb" title="Indent" onClick="{{ indent }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="3.5" x2="14" y2="3.5"></line><line x1="7" y1="8" x2="14" y2="8"></line><line x1="7" y1="12.5" x2="14" y2="12.5"></line><path d="M2 6 L4.5 8 L2 10"></path></svg></button>
+    <span class="sep"></span>
+    <button class="tb {{ on.quote }}" title="Blockquote" onClick="{{ quote }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="2.2" height="10" rx="1.1" fill="currentColor" stroke="none"></rect><line x1="7" y1="5" x2="14" y2="5"></line><line x1="7" y1="8" x2="14" y2="8"></line><line x1="7" y1="11" x2="11.5" y2="11"></line></svg></button>
+    <button class="tb" title="Link" onClick="{{ openLink }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 9.6 L9.6 6.4"></path><path d="M8.3 4.7 L9.8 3.2 a2.4 2.4 0 0 1 3.4 3.4 L11.7 8"></path><path d="M7.7 11.3 L6.2 12.8 a2.4 2.4 0 0 1 -3.4 -3.4 L4.3 8"></path></svg></button>
+    <button class="tb" title="Image" onClick="{{ openImage }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.6" y="2.6" width="12.8" height="10.8" rx="1.6"></rect><circle cx="5.4" cy="6" r="1.2"></circle><path d="M2.4 12 L6 8.6 L8.8 11 L11.4 8.4 L14.4 11.2"></path></svg></button>
+    <button class="tb" title="Table" onClick="{{ table }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1.6" y="2.6" width="12.8" height="10.8" rx="1.2"></rect><line x1="1.6" y1="6.6" x2="14.4" y2="6.6"></line><line x1="8" y1="2.6" x2="8" y2="13.4"></line></svg></button>
+    <button class="tb" title="Horizontal rule" onClick="{{ hr }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="2" y1="8" x2="14" y2="8"></line></svg></button>
+    <span class="spacer"></span>
+    <button class="tb" title="Undo" onClick="{{ undo }}">↶</button>
+    <button class="tb" title="Redo" onClick="{{ redo }}">↷</button>
+  </div>
+
+  <div class="panes">
+    <div class="pane pane-editor">
+      <div class="page">
+        <div class="doc {{ docFont }}" contenteditable="true" spellcheck="true" ref="{{ setEditor }}" onInput="{{ onEditorInput }}"></div>
+      </div>
+    </div>
+    <div class="pane pane-source">
+      <textarea class="src" spellcheck="false" ref="{{ setSource }}" onInput="{{ onSourceInput }}"></textarea>
+    </div>
+  </div>
+
+  <div class="status">
+    <span><b>{{ words }}</b> words</span>
+    <span><b>{{ chars }}</b> chars</span>
+    <span>~{{ readMin }} min read</span>
+    <span class="badge">MARKDOWN · GFM</span>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dlg-back" onMouseDown="{{ dialogBackDown }}">
+      <div class="dlg" onMouseDown="{{ stop }}">
+        <h4>{{ dialogTitle }}</h4>
+        <label>{{ dialogUrlLabel }}</label>
+        <input ref="{{ setDlgInput }}" value="{{ dlgUrl }}" onInput="{{ onDlgUrl }}" onKeyDown="{{ onDlgKey }}" placeholder="https://" autoComplete="off" spellcheck="false">
+        <label>{{ dialogTextLabel }}</label>
+        <input value="{{ dlgText }}" onInput="{{ onDlgText }}" onKeyDown="{{ onDlgKey }}" placeholder="{{ dialogTextPlaceholder }}" autoComplete="off">
+        <div class="dlg-actions">
+          <button class="btn-ghost" onClick="{{ dialogCancel }}">Cancel</button>
+          <button class="btn-primary" onClick="{{ dialogConfirm }}">Insert</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <input type="file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html" ref="{{ setFileInput }}" onChange="{{ onFileChosen }}" style="display:none">
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="menu-back" onMouseDown="{{ closeMenu }}"></div>
+    <div class="menu">
+      <div class="grp">Open</div>
+      <button class="mi" onClick="{{ doNew }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5 H3.5 A1.5 1.5 0 0 0 2 3 V13 A1.5 1.5 0 0 0 3.5 14.5 H12.5 A1.5 1.5 0 0 0 14 13 V6.5 Z"></path><path d="M9 1.5 V6.5 H14"></path></svg>New document</button>
+      <button class="mi" onClick="{{ doOpenLocal }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 4.5 A1.2 1.2 0 0 1 3 3.3 H6 L7.5 5 H13 A1.2 1.2 0 0 1 14.2 6.2 V11.5 A1.2 1.2 0 0 1 13 12.7 H3 A1.2 1.2 0 0 1 1.8 11.5 Z"></path></svg>Open file…<span class="k">.md .html</span></button>
+      <button class="mi" onClick="{{ doOpenDrive }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5.6 2 L10.4 2 L14 8.2 L11.6 12.4 L7.8 5.7 Z"></path><path d="M2 9.3 L4.4 5.1 L7.8 5.7 L5.4 9.9 Z"></path><path d="M5.4 9.9 L11.6 9.9 L11.6 12.4 L4 12.4 Z"></path></svg>Open from Drive…</button>
+      <div class="mdiv"></div>
+      <div class="grp">Export</div>
+      <button class="mi" onClick="{{ doExportMd }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8 V10"></path><path d="M5 7 L8 10 L11 7"></path><path d="M2.5 13.2 H13.5"></path></svg>Download Markdown<span class="k">.md</span></button>
+      <button class="mi" onClick="{{ doExportHtml }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 4 L2 8 L5.6 12"></path><path d="M10.4 4 L14 8 L10.4 12"></path></svg>Download HTML<span class="k">.html</span></button>
+      <button class="mi" onClick="{{ doExportPdf }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6 V2.5 H11.5 V6"></path><rect x="2.5" y="6" width="11" height="5" rx="1"></rect><path d="M4.5 10 H11.5 V14 H4.5 Z"></path></svg>Export PDF<span class="k">print</span></button>
+      <button class="mi" onClick="{{ doSaveDrive }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5 A1 1 0 0 1 3.5 2.5 H10.5 L13.5 5.5 V12.5 A1 1 0 0 1 12.5 13.5 H3.5 A1 1 0 0 1 2.5 12.5 Z"></path><path d="M5 2.5 V6 H10 V2.5"></path><path d="M5 13.5 V9.5 H11 V13.5"></path></svg>Save to Drive</button>
+      <div class="mdiv"></div>
+      <button class="mi" onClick="{{ doDriveToggle }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5.6 2 L10.4 2 L14 8.2 L11.6 12.4 L7.8 5.7 Z"></path><path d="M2 9.3 L4.4 5.1 L7.8 5.7 L5.4 9.9 Z"></path><path d="M5.4 9.9 L11.6 9.9 L11.6 12.4 L4 12.4 Z"></path></svg>{{ driveLabel }}</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalSetup }}" hint-placeholder-val="{{ false }}">
+    <div class="dlg-back" onMouseDown="{{ closeModal }}">
+      <div class="dlg dlg-wide" onMouseDown="{{ stop }}">
+        <h4>Connect Google Drive</h4>
+        <p class="dnote">Paste a Google OAuth <b>Client ID</b> from a Cloud project with the Drive API enabled, and add this page's URL as an <b>Authorized JavaScript origin</b>. <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Open Google Cloud console &#8599;</a></p>
+        <label>OAuth Client ID</label>
+        <input ref="{{ setModalInput }}" value="{{ modalValue }}" onInput="{{ onModalInput }}" onKeyDown="{{ onModalKey }}" placeholder="xxxxx.apps.googleusercontent.com" spellcheck="false" autoComplete="off">
+        <div class="dlg-actions">
+          <button class="btn-ghost" onClick="{{ closeModal }}">Cancel</button>
+          <button class="btn-primary" onClick="{{ saveClientId }}">Connect</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalDriveOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dlg-back" onMouseDown="{{ closeModal }}">
+      <div class="dlg dlg-wide" onMouseDown="{{ stop }}">
+        <h4>Open from Google Drive</h4>
+        <sc-if value="{{ driveLoading }}" hint-placeholder-val="{{ false }}">
+          <p class="dnote">Loading your markdown files&hellip;</p>
+        </sc-if>
+        <div class="dlist">
+          <sc-for list="{{ driveFiles }}" as="f" hint-placeholder-count="0">
+            <button class="dfile" onClick="{{ f.open }}"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="9" height="13" rx="1.4"></rect><line x1="4.5" y1="5" x2="9.5" y2="5"></line><line x1="4.5" y1="8" x2="9.5" y2="8"></line></svg><span class="name">{{ f.name }}</span><span class="meta">{{ f.when }}</span></button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ driveEmpty }}" hint-placeholder-val="{{ false }}">
+          <div class="dempty">No markdown files found in your Drive.</div>
+        </sc-if>
+        <div class="dlg-actions"><button class="btn-ghost" onClick="{{ closeModal }}">Close</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toastShow }}" hint-placeholder-val="{{ false }}">
+    <div class="toast {{ toastErr }}">{{ toastMsg }}</div>
+  </sc-if>
+
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div class="overlay"><span>initializing editor<span class="blink">_</span></span></div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#3061e8&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;startMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;editor&quot;,&quot;split&quot;,&quot;source&quot;],&quot;default&quot;:&quot;editor&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;serifBody&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const SAMPLE = [
+  '# Markdown, the way you mean it',
+  '',
+  'A WYSIWYG editor that speaks **only** markdown \u2014 every button maps to something the spec supports, nothing more. Write on the left, read the source on the right.',
+  '',
+  '## Why it works',
+  '',
+  '- Format with the toolbar or familiar shortcuts (`\u2318B`, `\u2318I`)',
+  '- Flip to **Source** for clean, portable markdown',
+  '- Everything stays in sync, *both* directions',
+  '',
+  '### Task list',
+  '',
+  '- [x] Render markdown to a rich document',
+  '- [x] Serialize edits back to markdown',
+  '- [ ] Ship it',
+  '',
+  '> Markdown is a writing format. This editor keeps it that way \u2014 no hidden styles, no surprises.',
+  '',
+  '### A small table',
+  '',
+  '| Element | Shortcut | Markdown |',
+  '| ------- | -------- | -------- |',
+  '| Bold    | \u2318B       | `**x**`  |',
+  '| Italic  | \u2318I       | `*x*`    |',
+  '| Code    | \u2014        | `` `x` `` |',
+  '',
+  'Inline `code` and fenced blocks both render:',
+  '',
+  '```js',
+  'function greet(name) {',
+  '  return `hello, ${name}`;',
+  '}',
+  '```',
+  '',
+  '[Read the CommonMark spec](https://commonmark.org) for the full grammar.',
+  '',
+  '---',
+  '',
+  "Drop an image, add a heading, make a list \u2014 it's all just text underneath."
+].join('\n');
+
+const DEFAULT_TABLE = '<table><thead><tr><th>Column A</th><th>Column B</th></tr></thead><tbody><tr><td>Cell</td><td>Cell</td></tr><tr><td>Cell</td><td>Cell</td></tr></tbody></table><p><br></p>';
+
+const EXPORT_CSS = "html{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#fff;color:#1b1b18}.md{max-width:720px;margin:0 auto;padding:48px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.7}.md>*:first-child{margin-top:0}.md h1{font-size:2em;font-weight:600;line-height:1.2;letter-spacing:-.02em;margin:1.4em 0 .5em}.md h2{font-size:1.5em;font-weight:600;margin:1.4em 0 .45em;padding-bottom:.2em;border-bottom:1px solid #ecece6}.md h3{font-size:1.2em;font-weight:600;margin:1.3em 0 .4em}.md h4,.md h5,.md h6{font-weight:600;margin:1.2em 0 .4em}.md p{margin:0 0 1em}.md ul,.md ol{margin:0 0 1em;padding-left:1.6em}.md li{margin:.3em 0}.md li:has(>input[type=checkbox]){list-style:none;margin-left:-1.4em}.md input[type=checkbox]{margin-right:.5em}.md a{color:#2456d6}.md strong{font-weight:650}.md code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#f1f1ec;border:1px solid #e6e6df;padding:.1em .35em;border-radius:4px}.md pre{background:#f6f6f1;border:1px solid #e6e6df;border-radius:8px;padding:14px 16px;overflow:auto;margin:0 0 1em}.md pre code{background:none;border:none;padding:0;font-size:.85em;line-height:1.6}.md blockquote{margin:0 0 1em;padding:.2em 0 .2em 1em;border-left:3px solid #2456d6;color:#5a5a52}.md table{border-collapse:collapse;width:100%;margin:0 0 1em;font-size:.95em}.md th,.md td{border:1px solid #d7d7ce;padding:8px 12px;text-align:left}.md th{background:#f4f4ee;font-weight:600}.md img{max-width:100%;border-radius:8px}.md hr{border:none;border-top:1px solid #d7d7ce;margin:1.6em 0}";
+
+class Component extends DCLogic {
+  state = { mode: 'editor', theme: 'light', ready: false, fmt: {}, words: 0, chars: 0, dialog: null,
+    menuOpen: false, fileName: 'untitled.md', dirty: false, toast: null, modal: null,
+    blockMenuOpen: false,
+    drive: { clientId: null, token: null, email: null, fileId: null } };
+
+  componentDidMount(){
+    this._tick = 0;
+    this.tryInit();
+    document.addEventListener('selectionchange', this.onSelChange);
+    this.loadGis();
+    try {
+      const cid = localStorage.getItem('mdedit_gdrive_client');
+      if (cid) this.setState(s => ({ drive: { ...s.drive, clientId: cid } }));
+    } catch(e){}
+  }
+  componentWillUnmount(){ document.removeEventListener('selectionchange', this.onSelChange); if (this._toastT) clearTimeout(this._toastT); }
+  loadGis(){
+    if (window.google && window.google.accounts) return;
+    if (document.getElementById('gis-sdk')) return;
+    const s = document.createElement('script');
+    s.id = 'gis-sdk'; s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true;
+    document.head.appendChild(s);
+  }
+
+  tryInit = () => {
+    if (window.marked && window.TurndownService && window.turndownPluginGfm){ this.boot(false); return; }
+    if (this._tick++ > 200){ this.boot(true); return; }
+    setTimeout(this.tryInit, 50);
+  };
+
+  boot(failed){
+    if (!failed){
+      const td = new TurndownService({ headingStyle:'atx', codeBlockStyle:'fenced', bulletListMarker:'-', emDelimiter:'*', hr:'---', linkStyle:'inlined' });
+      td.use(window.turndownPluginGfm.gfm);
+      td.addRule('strike', { filter:['del','s','strike'], replacement:(c)=>'~~'+c+'~~' });
+      this.td = td;
+      try { document.execCommand('styleWithCSS', false, false); } catch(e){}
+    }
+    this.md = SAMPLE;
+    this.renderEditor();
+    if (this.sourceEl) this.sourceEl.value = this.md;
+    this.updateCounts();
+    this.setState({ ready:true, mode: this.props.startMode || 'editor' });
+  }
+
+  // ---- conversion ----
+  mdToHtml(md){ try { return window.marked.parse ? window.marked.parse(md) : window.marked(md); } catch(e){ return '<p>'+(md||'')+'</p>'; } }
+  htmlToMd(html){ try { return this.td ? this.td.turndown(html) : html; } catch(e){ return this.md || ''; } }
+
+  renderEditor(){ if (!this.editorEl) return; this.editorEl.innerHTML = this.mdToHtml(this.md || ''); this.enhance(); }
+  enhance(){
+    if (!this.editorEl) return;
+    this.editorEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.disabled = false;
+      cb.addEventListener('change', () => this.syncFromEditor());
+    });
+  }
+
+  // ---- refs ----
+  setEditor = (el) => { this.editorEl = el; };
+  setSource = (el) => { this.sourceEl = el; };
+  setDlgInput = (el) => { this.dlgInputEl = el; };
+
+  // ---- sync ----
+  onEditorInput = () => { this.syncFromEditor(); this.markDirty(); };
+  markDirty(){ if (!this.state.dirty) this.setState({ dirty: true }); }
+  syncFromEditor(){
+    if (!this.editorEl) return;
+    this.md = this.htmlToMd(this.editorEl.innerHTML);
+    if (this.sourceEl) this.sourceEl.value = this.md;
+    this.updateCounts();
+  }
+  onSourceInput = (e) => {
+    this.md = e.target.value;
+    if (this.state.mode === 'split' && this.editorEl && document.activeElement !== this.editorEl) this.renderEditor();
+    this.updateCounts();
+    this.markDirty();
+  };
+  loadMd(md){ this.md = md || ''; this.renderEditor(); if (this.sourceEl) this.sourceEl.value = this.md; this.updateCounts(); }
+  updateCounts(){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = this.mdToHtml(this.md || '');
+    const text = (tmp.textContent || '').trim();
+    const words = text ? (text.match(/\S+/g) || []).length : 0;
+    this.setState({ words, chars: (this.md || '').length });
+  }
+
+  componentDidUpdate(pp, ps){
+    if (!this.state.ready || !ps) return;
+    if (ps.mode !== this.state.mode){
+      const m = this.state.mode;
+      if ((m === 'editor' || m === 'split') && document.activeElement !== this.editorEl) this.renderEditor();
+      if ((m === 'source' || m === 'split') && this.sourceEl) this.sourceEl.value = this.md;
+    }
+    if (!ps.dialog && this.state.dialog && this.dlgInputEl){ this.dlgInputEl.focus(); }
+    const wasSetup = ps.modal && ps.modal.kind === 'driveSetup';
+    const isSetup = this.state.modal && this.state.modal.kind === 'driveSetup';
+    if (!wasSetup && isSetup && this.modalInputEl){ this.modalInputEl.focus(); }
+  }
+
+  // ---- modes / theme ----
+  setMode(m){ this.setState({ mode:m }); }
+  setEditorMode = () => this.setMode('editor');
+  setSplitMode = () => this.setMode('split');
+  setSourceMode = () => this.setMode('source');
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+
+  // ---- selection state ----
+  onSelChange = () => {
+    if (document.activeElement !== this.editorEl) return;
+    if (this._raf) return;
+    this._raf = requestAnimationFrame(() => { this._raf = null; this.setState({ fmt: this.computeFmt() }); });
+  };
+  computeFmt(){
+    const q = (c) => { try { return document.queryCommandState(c); } catch(e){ return false; } };
+    const block = this.currentBlock();
+    return {
+      bold:q('bold'), italic:q('italic'), strike:q('strikeThrough'),
+      ul:q('insertUnorderedList'), ol:q('insertOrderedList'),
+      block: block, quote:block==='blockquote'
+    };
+  }
+  currentBlock(){
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return '';
+    let n = sel.anchorNode; n = (n && n.nodeType === 3) ? n.parentElement : n;
+    const b = n && n.closest && n.closest('h1,h2,h3,h4,h5,h6,blockquote,pre,li');
+    return b ? b.tagName.toLowerCase() : '';
+  }
+  currentLi(){
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    let n = sel.anchorNode; n = (n && n.nodeType === 3) ? n.parentElement : n;
+    return (n && n.closest) ? n.closest('li') : null;
+  }
+  selText(){ const s = window.getSelection(); return s ? s.toString() : ''; }
+  esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
+  // ---- commands ----
+  keepFocus = (e) => { e.preventDefault(); };
+  focusEd(){ if (this.editorEl) this.editorEl.focus(); }
+  afterCmd(){ this.syncFromEditor(); this.setState({ fmt: this.computeFmt() }); }
+  exec(cmd){ this.focusEd(); try { document.execCommand(cmd, false, null); } catch(e){} this.afterCmd(); }
+  insertHTML(html){ this.focusEd(); try { document.execCommand('insertHTML', false, html); } catch(e){} this.afterCmd(); }
+  toggleBlock(tag){
+    this.focusEd();
+    const cur = this.currentBlock();
+    const target = (cur === tag.toLowerCase()) ? 'P' : tag;
+    try { document.execCommand('formatBlock', false, target); } catch(e){}
+    this.afterCmd();
+  }
+
+  toggleBlockMenu = () => this.setState(s => ({ blockMenuOpen: !s.blockMenuOpen, fmt: this.computeFmt() }));
+  closeBlockMenu = () => this.setState({ blockMenuOpen: false });
+  applyBlock(tag){ this.focusEd(); try { document.execCommand('formatBlock', false, tag); } catch(e){} this.setState({ blockMenuOpen: false }); this.afterCmd(); }
+  blkP = () => this.applyBlock('P');
+  blkH1 = () => this.applyBlock('H1');
+  blkH2 = () => this.applyBlock('H2');
+  blkH3 = () => this.applyBlock('H3');
+  blkH4 = () => this.applyBlock('H4');
+  blkH5 = () => this.applyBlock('H5');
+  blkH6 = () => this.applyBlock('H6');
+
+  bold = () => this.exec('bold');
+  italic = () => this.exec('italic');
+  strike = () => this.exec('strikeThrough');
+  h1 = () => this.toggleBlock('H1');
+  h2 = () => this.toggleBlock('H2');
+  h3 = () => this.toggleBlock('H3');
+  para = () => { this.focusEd(); try { document.execCommand('formatBlock', false, 'P'); } catch(e){} this.afterCmd(); };
+  ul = () => this.exec('insertUnorderedList');
+  ol = () => this.exec('insertOrderedList');
+  quote = () => this.toggleBlock('BLOCKQUOTE');
+  task = () => {
+    this.focusEd();
+    try { document.execCommand('insertUnorderedList', false, null); } catch(e){}
+    const li = this.currentLi();
+    if (li && !li.querySelector('input[type=checkbox]')){
+      const box = document.createElement('input'); box.type = 'checkbox';
+      box.addEventListener('change', () => this.syncFromEditor());
+      li.insertBefore(document.createTextNode(' '), li.firstChild);
+      li.insertBefore(box, li.firstChild);
+    }
+    this.afterCmd();
+  };
+  inlineCode = () => { const t = this.selText(); this.insertHTML('<code>' + this.esc(t || 'code') + '</code>'); };
+  codeBlock = () => { const t = this.selText(); this.insertHTML('<pre><code>' + this.esc(t || 'code') + '</code></pre>'); };
+  hr = () => { this.focusEd(); try { document.execCommand('insertHorizontalRule', false, null); } catch(e){ try { document.execCommand('insertHTML', false, '<hr>'); } catch(e2){} } this.afterCmd(); };
+  table = () => this.insertHTML(DEFAULT_TABLE);
+  caretInto(el){ try { const r=document.createRange(); r.selectNodeContents(el); r.collapse(true); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch(e){} }
+  indent = () => {
+    this.focusEd();
+    const li = this.currentLi();
+    if (li){
+      let prev = li.previousElementSibling;
+      while (prev && prev.tagName !== 'LI') prev = prev.previousElementSibling;
+      if (prev && prev.tagName === 'LI'){
+        const tag = (li.parentElement.tagName || 'UL').toLowerCase();
+        let sub = prev.querySelector(':scope > ul, :scope > ol');
+        if (!sub){ sub = document.createElement(tag); prev.appendChild(sub); }
+        sub.appendChild(li);
+        this.caretInto(li);
+      }
+    } else {
+      try { document.execCommand('indent', false, null); } catch(e){}
+    }
+    this.afterCmd();
+  };
+  outdent = () => {
+    this.focusEd();
+    const li = this.currentLi();
+    if (li){
+      const sublist = li.parentElement;
+      const parentLi = sublist && sublist.parentElement;
+      if (parentLi && parentLi.tagName === 'LI'){
+        const grand = parentLi.parentElement;
+        grand.insertBefore(li, parentLi.nextSibling);
+        if (!sublist.querySelector('li')) sublist.remove();
+        this.caretInto(li);
+      }
+    } else {
+      try { document.execCommand('outdent', false, null); } catch(e){}
+    }
+    this.afterCmd();
+  };
+  undo = () => this.exec('undo');
+  redo = () => this.exec('redo');
+
+  // ---- link / image dialog ----
+  saveRange(){ const s = window.getSelection(); this.savedRange = (s && s.rangeCount) ? s.getRangeAt(0).cloneRange() : null; }
+  restoreRange(){ this.focusEd(); if (this.savedRange){ const s = window.getSelection(); s.removeAllRanges(); s.addRange(this.savedRange); } }
+  openLink = () => { this.saveRange(); this.setState({ dialog:{ type:'link', url:'', text:this.selText() } }); };
+  openImage = () => { this.saveRange(); this.setState({ dialog:{ type:'image', url:'', text:'' } }); };
+  onDlgUrl = (e) => { const v = e.target.value; this.setState(s => ({ dialog:{ ...s.dialog, url:v } })); };
+  onDlgText = (e) => { const v = e.target.value; this.setState(s => ({ dialog:{ ...s.dialog, text:v } })); };
+  onDlgKey = (e) => { if (e.key === 'Enter'){ e.preventDefault(); this.dialogConfirm(); } else if (e.key === 'Escape'){ e.preventDefault(); this.dialogCancel(); } };
+  dialogCancel = () => this.setState({ dialog:null });
+  dialogBackDown = () => this.dialogCancel();
+  stop = (e) => e.stopPropagation();
+  dialogConfirm = () => {
+    const d = this.state.dialog; if (!d) { return; }
+    const url = (d.url || '').trim();
+    if (url){
+      this.restoreRange();
+      if (d.type === 'link'){
+        if (this.selText()) { try { document.execCommand('createLink', false, url); } catch(e){} }
+        else { try { document.execCommand('insertHTML', false, '<a href="'+this.escAttr(url)+'">'+this.esc(d.text || url)+'</a>'); } catch(e){} }
+      } else {
+        try { document.execCommand('insertHTML', false, '<img src="'+this.escAttr(url)+'" alt="'+this.esc(d.text || '')+'">'); } catch(e){}
+      }
+      this.syncFromEditor();
+    }
+    this.setState({ dialog:null });
+  };
+
+  // ---- toast / menu ----
+  toast(msg, isErr){ this.setState({ toast: { msg, err: !!isErr } }); if (this._toastT) clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toast: null }), 2800); }
+  toggleMenu = () => this.setState(s => ({ menuOpen: !s.menuOpen }));
+  closeMenu = () => this.setState({ menuOpen: false });
+  closeModal = () => this.setState({ modal: null });
+
+  // ---- file helpers ----
+  baseName(){ return (this.state.fileName || 'untitled.md').replace(/\.[^.]+$/, '') || 'untitled'; }
+  withExt(ext){ return this.baseName() + '.' + ext; }
+  setFileInput = (el) => { this.fileInputEl = el; };
+  download(filename, mime, content){
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  doNew = () => {
+    this.md = '# Untitled\n\n';
+    this.renderEditor();
+    if (this.sourceEl) this.sourceEl.value = this.md;
+    this.updateCounts();
+    this.setState({ menuOpen: false, fileName: 'untitled.md', dirty: false, drive: { ...this.state.drive, fileId: null } });
+  };
+  doOpenLocal = () => { this.setState({ menuOpen: false }); if (this.fileInputEl) this.fileInputEl.click(); };
+  onFileChosen = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let text = String(reader.result || '');
+      const isHtml = /\.(html?|htm)$/i.test(file.name) || /^\s*<(!doctype|html|div|h\d|p|article)/i.test(text);
+      if (isHtml) text = this.htmlToMd(text);
+      this.loadMd(text);
+      const name = file.name.replace(/\.(html?|htm|txt)$/i, '.md');
+      this.setState({ fileName: name, dirty: false, drive: { ...this.state.drive, fileId: null } });
+      this.toast('Opened ' + file.name);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  doExportMd = () => { this.setState({ menuOpen: false }); this.download(this.withExt('md'), 'text/markdown;charset=utf-8', this.md || ''); this.toast('Downloaded ' + this.withExt('md')); };
+  doExportHtml = () => { this.setState({ menuOpen: false }); this.download(this.withExt('html'), 'text/html;charset=utf-8', this.buildStandaloneHtml()); this.toast('Downloaded ' + this.withExt('html')); };
+  doExportPdf = () => {
+    this.setState({ menuOpen: false });
+    const html = this.buildStandaloneHtml(true);
+    const ifr = document.createElement('iframe');
+    ifr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+    document.body.appendChild(ifr);
+    const d = ifr.contentWindow.document;
+    d.open(); d.write(html); d.close();
+    const fire = () => { try { ifr.contentWindow.focus(); ifr.contentWindow.print(); } catch(e){} };
+    ifr.contentWindow.onafterprint = () => { setTimeout(() => ifr.remove(), 200); };
+    setTimeout(fire, 350);
+    setTimeout(() => { if (ifr.parentNode) ifr.remove(); }, 60000);
+    this.toast('Opening print dialog\u2026 choose \u201cSave as PDF\u201d');
+  };
+  buildStandaloneHtml(forPrint){
+    const title = this.baseName();
+    const body = this.mdToHtml(this.md || '');
+    const pageCss = forPrint ? '@page{margin:18mm}' : '';
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' +
+      this.esc(title) + '</title><style>' + EXPORT_CSS + pageCss + '</style></head><body><article class="md">' + body + '</article></body></html>';
+  }
+
+  // ---- google drive ----
+  driveReady(){ return !!(window.google && window.google.accounts && window.google.accounts.oauth2); }
+  ensureToken(cb){
+    const cid = this.state.drive.clientId;
+    if (!cid){ this.setState({ menuOpen: false, modal: { kind: 'driveSetup', value: '' } }); return; }
+    if (!this.driveReady()){ this.toast('Google sign-in is still loading\u2026', true); return; }
+    if (this.state.drive.token){ cb(this.state.drive.token); return; }
+    try {
+      const tc = window.google.accounts.oauth2.initTokenClient({
+        client_id: cid,
+        scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email',
+        callback: (resp) => {
+          if (resp && resp.access_token){
+            this.setState(s => ({ drive: { ...s.drive, token: resp.access_token } }));
+            this.fetchEmail(resp.access_token);
+            cb(resp.access_token);
+          } else { this.toast('Drive authorization failed', true); }
+        }
+      });
+      this._tokenClient = tc;
+      tc.requestAccessToken({ prompt: 'consent' });
+    } catch(e){ this.toast('Could not start Google sign-in', true); }
+  }
+  fetchEmail(token){
+    fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.json()).then(j => { if (j && j.email) this.setState(s => ({ drive: { ...s.drive, email: j.email } })); }).catch(() => {});
+  }
+  saveClientId = () => {
+    const v = (this.state.modal && this.state.modal.value || '').trim();
+    if (!v){ return; }
+    try { localStorage.setItem('mdedit_gdrive_client', v); } catch(e){}
+    this.setState(s => ({ drive: { ...s.drive, clientId: v }, modal: null }));
+    setTimeout(() => this.ensureToken(() => this.toast('Google Drive connected')), 60);
+  };
+  onModalInput = (e) => { const v = e.target.value; this.setState(s => ({ modal: { ...s.modal, value: v } })); };
+  onModalKey = (e) => { if (e.key === 'Enter'){ e.preventDefault(); this.saveClientId(); } else if (e.key === 'Escape'){ this.closeModal(); } };
+  setModalInput = (el) => { this.modalInputEl = el; };
+
+  doConnectDrive(){ this.ensureToken(() => this.toast('Google Drive connected')); }
+  doDriveToggle = () => {
+    this.setState({ menuOpen: false });
+    if (this.state.drive.token){
+      try { window.google.accounts.oauth2.revoke(this.state.drive.token, () => {}); } catch(e){}
+      this.setState(s => ({ drive: { ...s.drive, token: null, email: null, fileId: null } }));
+      this.toast('Disconnected from Drive');
+    } else {
+      setTimeout(() => this.doConnectDrive(), 30);
+    }
+  };
+  doSaveDrive = () => { this.setState({ menuOpen: false }); this.ensureToken((tok) => this.saveToDrive(tok)); };
+  saveToDrive(tok){
+    const name = this.withExt('md');
+    const meta = { name: name, mimeType: 'text/markdown' };
+    const boundary = 'mdedit' + Date.now();
+    const body = '\r\n--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(meta) +
+      '\r\n--' + boundary + '\r\nContent-Type: text/markdown\r\n\r\n' + (this.md || '') + '\r\n--' + boundary + '--';
+    const id = this.state.drive.fileId;
+    const url = id ? ('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=multipart')
+                   : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    fetch(url, { method: id ? 'PATCH' : 'POST', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'multipart/related; boundary=' + boundary }, body })
+      .then(r => r.json()).then(j => {
+        if (j && j.id){ this.setState(s => ({ drive: { ...s.drive, fileId: j.id }, fileName: j.name || name, dirty: false })); this.toast('Saved to Google Drive'); }
+        else { this.toast('Drive save failed', true); }
+      }).catch(() => this.toast('Drive save failed', true));
+  }
+  doOpenDrive = () => { this.setState({ menuOpen: false }); this.ensureToken((tok) => this.listDrive(tok)); };
+  listDrive(tok){
+    this.setState({ modal: { kind: 'driveOpen', loading: true, files: [] } });
+    const q = "(name contains '.md' or name contains '.markdown') and mimeType != 'application/vnd.google-apps.folder' and trashed = false";
+    const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=' + encodeURIComponent('files(id,name,modifiedTime)') + '&orderBy=modifiedTime desc&pageSize=50';
+    fetch(url, { headers: { Authorization: 'Bearer ' + tok } })
+      .then(r => r.json()).then(j => { this.setState({ modal: { kind: 'driveOpen', loading: false, files: (j && j.files) || [] } }); })
+      .catch(() => { this.setState({ modal: null }); this.toast('Could not list Drive files', true); });
+  }
+  openDriveFile(file){
+    const tok = this.state.drive.token;
+    fetch('https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media', { headers: { Authorization: 'Bearer ' + tok } })
+      .then(r => r.text()).then(txt => {
+        this.loadMd(txt);
+        this.setState(s => ({ fileName: file.name, drive: { ...s.drive, fileId: file.id }, dirty: false, modal: null }));
+        this.toast('Opened ' + file.name);
+      }).catch(() => this.toast('Could not open file', true));
+  }
+  fmtWhen(iso){ if (!iso) return ''; try { const d = new Date(iso); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch(e){ return ''; } }
+
+  renderVals(){
+    const s = this.state;
+    const f = s.fmt || {};
+    const blk = f.block || '';
+    const labelMap = { p:'Paragraph', h1:'Heading 1', h2:'Heading 2', h3:'Heading 3', h4:'Heading 4', h5:'Heading 5', h6:'Heading 6', blockquote:'Quote', pre:'Code block', li:'List item' };
+    const blockLabel = labelMap[blk] || 'Paragraph';
+    const accent = this.props.accentColor || '#3061e8';
+    const d = s.dialog;
+    const isImg = d && d.type === 'image';
+    return {
+      mode: s.mode,
+      theme: s.theme,
+      readyClass: s.ready ? 'ready' : '',
+      loading: !s.ready,
+      fileName: s.fileName,
+      dirtyClass: s.dirty ? '' : 'saved',
+      menuOpen: s.menuOpen,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu,
+      doNew: this.doNew, doOpenLocal: this.doOpenLocal, doOpenDrive: this.doOpenDrive,
+      doExportMd: this.doExportMd, doExportHtml: this.doExportHtml, doExportPdf: this.doExportPdf,
+      doSaveDrive: this.doSaveDrive, doDriveToggle: this.doDriveToggle,
+      setFileInput: this.setFileInput, onFileChosen: this.onFileChosen,
+      driveLabel: s.drive.email ? (s.drive.email + ' \u00b7 Disconnect') : (s.drive.token ? 'Disconnect Drive' : 'Connect Google Drive'),
+      modalSetup: !!(s.modal && s.modal.kind === 'driveSetup'),
+      modalDriveOpen: !!(s.modal && s.modal.kind === 'driveOpen'),
+      modalValue: (s.modal && s.modal.value) || '',
+      onModalInput: this.onModalInput, onModalKey: this.onModalKey, setModalInput: this.setModalInput,
+      saveClientId: this.saveClientId, closeModal: this.closeModal,
+      driveLoading: !!(s.modal && s.modal.kind === 'driveOpen' && s.modal.loading),
+      driveEmpty: !!(s.modal && s.modal.kind === 'driveOpen' && !s.modal.loading && (!s.modal.files || !s.modal.files.length)),
+      driveFiles: (s.modal && s.modal.kind === 'driveOpen' && s.modal.files ? s.modal.files : []).map(f => ({ name: f.name, when: this.fmtWhen(f.modifiedTime), open: () => this.openDriveFile(f) })),
+      toastShow: !!s.toast,
+      toastMsg: s.toast ? s.toast.msg : '',
+      toastErr: s.toast && s.toast.err ? 'err' : '',
+      docFont: this.props.serifBody ? 'serif' : '',
+      accentVars: '--accent:' + accent + ';--accent-soft:' + accent + '20',
+      words: s.words,
+      chars: s.chars,
+      readMin: Math.max(1, Math.round(s.words / 200)),
+      on: {
+        mEditor: s.mode === 'editor' ? 'on' : '',
+        mSplit: s.mode === 'split' ? 'on' : '',
+        mSource: s.mode === 'source' ? 'on' : '',
+        bold: f.bold ? 'on' : '', italic: f.italic ? 'on' : '', strike: f.strike ? 'on' : '',
+        ul: f.ul ? 'on' : '', ol: f.ol ? 'on' : '', quote: f.quote ? 'on' : '',
+        bP: (blk === 'p' || blk === '' || blk === 'li') ? 'on' : '', bH1: blk === 'h1' ? 'on' : '', bH2: blk === 'h2' ? 'on' : '',
+        bH3: blk === 'h3' ? 'on' : '', bH4: blk === 'h4' ? 'on' : '', bH5: blk === 'h5' ? 'on' : '', bH6: blk === 'h6' ? 'on' : ''
+      },
+      blockLabel: blockLabel,
+      blockMenuOpen: s.blockMenuOpen,
+      toggleBlockMenu: this.toggleBlockMenu, closeBlockMenu: this.closeBlockMenu,
+      blkP: this.blkP, blkH1: this.blkH1, blkH2: this.blkH2, blkH3: this.blkH3, blkH4: this.blkH4, blkH5: this.blkH5, blkH6: this.blkH6,
+      // refs + handlers
+      setEditor: this.setEditor, setSource: this.setSource, setDlgInput: this.setDlgInput,
+      onEditorInput: this.onEditorInput, onSourceInput: this.onSourceInput,
+      setEditorMode: this.setEditorMode, setSplitMode: this.setSplitMode, setSourceMode: this.setSourceMode,
+      toggleTheme: this.toggleTheme, keepFocus: this.keepFocus,
+      h1: this.h1, h2: this.h2, h3: this.h3, para: this.para,
+      bold: this.bold, italic: this.italic, strike: this.strike,
+      inlineCode: this.inlineCode, codeBlock: this.codeBlock,
+      ul: this.ul, ol: this.ol, task: this.task,
+      quote: this.quote, openLink: this.openLink, openImage: this.openImage,
+      table: this.table, hr: this.hr, indent: this.indent, outdent: this.outdent, undo: this.undo, redo: this.redo,
+      // dialog
+      dialogOpen: !!d,
+      dialogTitle: isImg ? 'Insert image' : 'Insert link',
+      dialogUrlLabel: isImg ? 'Image URL' : 'Link URL',
+      dialogTextLabel: isImg ? 'Alt text (optional)' : 'Link text (optional)',
+      dialogTextPlaceholder: isImg ? 'description' : 'shown text',
+      dlgUrl: d ? d.url : '',
+      dlgText: d ? d.text : '',
+      onDlgUrl: this.onDlgUrl, onDlgText: this.onDlgText, onDlgKey: this.onDlgKey,
+      dialogConfirm: this.dialogConfirm, dialogCancel: this.dialogCancel,
+      dialogBackDown: this.dialogBackDown, stop: this.stop
+    };
+  }
+}
+</script>
+</body>
+</html>
