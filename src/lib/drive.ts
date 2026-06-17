@@ -25,6 +25,8 @@ interface GoogleOAuth2 {
 declare global {
   interface Window {
     google?: { accounts?: { oauth2?: GoogleOAuth2 } }
+    /** Injected at container start from the GDRIVE_CLIENT_ID env var (see public/config.js). */
+    MDEDIT_GDRIVE_CLIENT_ID?: string
   }
 }
 
@@ -34,9 +36,14 @@ export interface DriveFile {
   modifiedTime?: string
 }
 
-/** The configured client id (build-time env, else null → caller prompts). */
+/**
+ * The configured client id, or null (→ caller prompts). Precedence:
+ * runtime injection (`window.MDEDIT_GDRIVE_CLIENT_ID`, set per-container from the
+ * GDRIVE_CLIENT_ID env var) → build-time `VITE_GDRIVE_CLIENT_ID` → none.
+ */
 export function envClientId(): string | null {
-  return import.meta.env.VITE_GDRIVE_CLIENT_ID || null
+  const runtime = typeof window !== 'undefined' ? window.MDEDIT_GDRIVE_CLIENT_ID : ''
+  return (runtime && runtime.trim()) || import.meta.env.VITE_GDRIVE_CLIENT_ID || null
 }
 
 let gisPromise: Promise<void> | null = null

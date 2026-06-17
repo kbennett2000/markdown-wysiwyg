@@ -7,6 +7,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Runtime config (Client ID, etc.); loaded before the app so its globals are set first. -->
+    <script src="./config.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

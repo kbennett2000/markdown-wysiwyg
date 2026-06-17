@@ -109,6 +109,18 @@ docker compose up --build      # serves on http://localhost:8080
 docker run --rm -e APP_PORT=9000 -p 9000:9000 ghcr.io/kbennett2000/markdown-wysiwyg:latest
 ```
 
+**Optional Google Drive.** Drive is off until configured. Provide a Google OAuth
+Client ID at **runtime** and the same image enables it — no rebuild, and the in‑app
+"paste a Client ID" prompt is skipped:
+
+```bash
+docker run --rm -e GDRIVE_CLIENT_ID=xxxx.apps.googleusercontent.com \
+  -p 8080:8080 ghcr.io/kbennett2000/markdown-wysiwyg:latest
+```
+
+Full walkthrough (Cloud project, consent screen, authorized origins): **[docs/google-drive.md](docs/google-drive.md)**.
+A from‑source build can also bake one in via the `VITE_GDRIVE_CLIENT_ID` build arg.
+
 **Offline by design.** Everything (the editor libraries and the IBM Plex fonts) is
 bundled at build time — no CDN, no Google Fonts. The only feature that ever touches
 the network is the optional Google Drive integration, which is lazy‑loaded only when

@@ -10,6 +10,9 @@ services:
     environment:
       # Port nginx listens on INSIDE the container.
       APP_PORT: ${APP_PORT:-8080}
+      # Optional Google OAuth Client ID for the online-only Drive feature.
+      # Leave unset to disable the baked-in ID (see docs/google-drive.md).
+      GDRIVE_CLIENT_ID: ${GDRIVE_CLIENT_ID:-}
     ports:
       # <host port>:<container port>. Change either via env vars below, e.g.
       #   APP_PORT=9000 HOST_PORT=9000 docker compose up --build
